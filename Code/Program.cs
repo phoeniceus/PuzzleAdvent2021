@@ -16,8 +16,10 @@ namespace PuzzleAdvent2021
       //Console.WriteLine($"The answer to Puzzle #4.2 is [{new Puzzle_Day04(2).Solve()}].");
       //Console.WriteLine($"The answer to Puzzle #5.1 is [{new Puzzle_Day05(1).Solve()}].");
       //Console.WriteLine($"The answer to Puzzle #5.2 is [{new Puzzle_Day05(2).Solve()}].");
-      Console.WriteLine($"The answer to Puzzle #6.1 is [{new Puzzle_Day06(1, 80).Solve()}].");
-      Console.WriteLine($"The answer to Puzzle #6.2 is [{new Puzzle_Day06(1, 256).Solve()}].");
+      //Console.WriteLine($"The answer to Puzzle #6.1 is [{new Puzzle_Day06(1, 80).Solve()}].");
+      //Console.WriteLine($"The answer to Puzzle #6.2 is [{new Puzzle_Day06(1, 256).Solve()}].");
+      Console.WriteLine($"The answer to Puzzle #7.1 is [{new Puzzle_Day07(1).Solve()}].");
+      Console.WriteLine($"The answer to Puzzle #7.2 is [{new Puzzle_Day07(2).Solve()}].");
     }
   }
 }
