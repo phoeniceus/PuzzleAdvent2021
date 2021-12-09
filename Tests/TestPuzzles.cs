@@ -69,5 +69,14 @@ namespace PuzzleAdvent2021Test
       var puzzle = new Puzzle_Day07(part, useTestData: true);
       Assert.Equal(result.ToString(), puzzle.Solve());
     }
+
+    [Theory]
+    [InlineData(1, 26)]
+    [InlineData(2, 61229)]
+    public void TestPuzzle_Day8(int part, long result)
+    {
+      var puzzle = new Puzzle_Day08(part, useTestData: true);
+      Assert.Equal(result.ToString(), puzzle.Solve());
+    }
   }
 }
