@@ -11,7 +11,7 @@ namespace PuzzleAdvent2021Test
     [InlineData(2, 5)]
     public void TestPuzzle_Day1(int part, int result)
     {
-      var puzzle = new Puzzle_Day01(part, useTestData:true);
+      var puzzle = new Puzzle_Day01(part, useTestData: true);
       Assert.Equal(result.ToString(), puzzle.Solve());
     }
 
@@ -52,12 +52,11 @@ namespace PuzzleAdvent2021Test
     }
 
     [Theory]
-    [InlineData(1, 18, 26)]
-    [InlineData(1, 80, 5934)]
-    [InlineData(2, 256, 26984457539)]
-    public void TestPuzzle_Day6(int part, uint days, long result)
+    [InlineData(1, 5934)]
+    [InlineData(2, 26984457539)]
+    public void TestPuzzle_Day6(int part, long result)
     {
-      var puzzle = new Puzzle_Day06(part, days, useTestData: true);
+      var puzzle = new Puzzle_Day06(part, useTestData: true);
       Assert.Equal(result.ToString(), puzzle.Solve());
     }
 
@@ -76,6 +75,15 @@ namespace PuzzleAdvent2021Test
     public void TestPuzzle_Day8(int part, long result)
     {
       var puzzle = new Puzzle_Day08(part, useTestData: true);
+      Assert.Equal(result.ToString(), puzzle.Solve());
+    }
+
+    [Theory]
+    [InlineData(1, 15)]
+    [InlineData(2, 1134)]
+    public void TestPuzzle_Day9(int part, long result)
+    {
+      var puzzle = new Puzzle_Day09(part, useTestData: true);
       Assert.Equal(result.ToString(), puzzle.Solve());
     }
   }

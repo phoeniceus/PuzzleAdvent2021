@@ -6,22 +6,28 @@ namespace PuzzleAdvent2021
   {
     static void Main(string[] args)
     {
-      //Console.WriteLine($"The answer to Puzzle #1.1 is [{new Puzzle_Day01(1).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #1.2 is [{new Puzzle_Day01(3).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #2.1 is [{new Puzzle_Day02(1).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #2.2 is [{new Puzzle_Day02(2).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #3.1 is [{new Puzzle_Day03(1).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #3.2 is [{new Puzzle_Day03(2).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #4.1 is [{new Puzzle_Day04(1).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #4.2 is [{new Puzzle_Day04(2).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #5.1 is [{new Puzzle_Day05(1).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #5.2 is [{new Puzzle_Day05(2).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #6.1 is [{new Puzzle_Day06(1, 80).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #6.2 is [{new Puzzle_Day06(1, 256).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #7.1 is [{new Puzzle_Day07(1).Solve()}].");
-      //Console.WriteLine($"The answer to Puzzle #7.2 is [{new Puzzle_Day07(2).Solve()}].");
-      Console.WriteLine($"The answer to Puzzle #8.1 is [{new Puzzle_Day08(1).Solve()}].");
-      Console.WriteLine($"The answer to Puzzle #8.2 is [{new Puzzle_Day08(2).Solve()}].");
+      for (int puzzle = 9; puzzle <= 9; puzzle++)
+      {
+        for (int part = 1; part <= 2; part++)
+        {
+          Console.WriteLine($"The answer to Puzzle #{puzzle}.{part} is [{GetPuzzle(puzzle, part).Solve()}].");
+        }
+      }
     }
+
+    static Puzzle GetPuzzle(int day, int part) =>
+      day switch
+      {
+        1 => new Puzzle_Day01(part),
+        2 => new Puzzle_Day02(part),
+        3 => new Puzzle_Day03(part),
+        4 => new Puzzle_Day04(part),
+        5 => new Puzzle_Day05(part),
+        6 => new Puzzle_Day06(part),
+        7 => new Puzzle_Day07(part),
+        8 => new Puzzle_Day08(part),
+        9 => new Puzzle_Day09(part),
+        _ => null
+      };
   }
 }

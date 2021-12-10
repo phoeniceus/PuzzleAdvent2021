@@ -9,17 +9,20 @@ namespace PuzzleAdvent2021
 {
   public class Puzzle_Day06 : Puzzle
   {
-    private uint _days;
-
-    public Puzzle_Day06(int part, uint days, bool useTestData = false) : base(6, part, useTestData)
+    public Puzzle_Day06(int part, bool useTestData = false) : base(6, part, useTestData)
     {
-      _days = days;
     }
 
     public override string Solve()
     {
       var fish = ReadLines();
-      for (int i = 0; i < _days; i++)
+      var days = Part switch
+      {
+        1 => 80,
+        2 => 256,
+        _ => throw new ArgumentOutOfRangeException(nameof(Part))
+      };
+      for (int i = 0; i < days; i++)
       {
         fish.OneDayLater();
       }
