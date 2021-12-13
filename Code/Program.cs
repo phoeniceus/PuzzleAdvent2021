@@ -6,7 +6,7 @@ namespace PuzzleAdvent2021
   {
     static void Main(string[] args)
     {
-      var puzzle = 11;
+      var puzzle = 12;
       Console.WriteLine($"The answer to Puzzle #{puzzle}.1 is [{GetPuzzle(puzzle, 1).Solve()}].");
       Console.WriteLine($"The answer to Puzzle #{puzzle}.2 is [{GetPuzzle(puzzle, 2).Solve()}].");
     }
@@ -25,6 +25,7 @@ namespace PuzzleAdvent2021
         9 => new Puzzle_Day09(part),
         10 => new Puzzle_Day10(part),
         11 => new Puzzle_Day11(part),
+        12 => new Puzzle_Day12(part),
         _ => null
       };
   }
