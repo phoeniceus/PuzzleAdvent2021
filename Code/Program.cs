@@ -6,10 +6,11 @@ namespace PuzzleAdvent2021
   {
     static void Main(string[] args)
     {
-      var puzzle = 12;
-      Console.WriteLine($"The answer to Puzzle #{puzzle}.1 is [{GetPuzzle(puzzle, 1).Solve()}].");
-      Console.WriteLine($"The answer to Puzzle #{puzzle}.2 is [{GetPuzzle(puzzle, 2).Solve()}].");
+      var puzzle = 13;
+      Console.WriteLine($"The answer to Puzzle #{puzzle}.1 is\r\n[{GetPuzzle(puzzle, 1).Solve()}].");
+      Console.WriteLine($"The answer to Puzzle #{puzzle}.2 is\r\n{GetPuzzle(puzzle, 2).Solve()}.");
     }
+
 
     static Puzzle GetPuzzle(int day, int part) =>
       day switch
@@ -26,6 +27,8 @@ namespace PuzzleAdvent2021
         10 => new Puzzle_Day10(part),
         11 => new Puzzle_Day11(part),
         12 => new Puzzle_Day12(part),
+        13 => new Puzzle_Day13(part),
+        14 => new Puzzle_Day14(part),
         _ => null
       };
   }
