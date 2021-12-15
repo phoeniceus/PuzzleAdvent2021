@@ -15,91 +15,101 @@ namespace PuzzleAdvent2021
 
     public override string Solve()
     {
-      var graph = GetGraph();
-      var paths = graph.GetPaths().ToArray();
-      return paths.Length.ToString();
-    }
-
-    private Graph GetGraph()
-    {
-      return new Graph(ReadInput(), Part);
-    }
-
-    public class Edge
-    {
-      public string Cave1 { get; set; }
-      public string Cave2 { get; set; }
-    }
-
-    private class Graph
-    {
-      private Edge[] Edges { get; set; }
-      private int Part { get; set; }
-      public Graph(IEnumerable<string> lines, int part)
+      var (polymer, insertions) = ReadData();
+      for (int i = 0; i < (Part == 1 ? 10 : 40); i++)
       {
-        var edges = new List<Edge>();
-        foreach (var line in lines)
+        polymer.Insert(insertions);
+      }
+      var histogram = polymer.GetHistogram();
+      var max = histogram.Max(x => x.Value);
+      var min = histogram.Min(x => x.Value);
+      var result = max - min;
+      return result.ToString();
+    }
+
+    private (Polymer, Dictionary<string, string>) ReadData()
+    {
+      var lines = ReadInput().ToArray();
+      return (new Polymer(lines[0]), lines.Skip(2).ToDictionary(p => p[0..2], p => p.Last().ToString()));
+    }
+
+    public string Insert(string polymer, Dictionary<string, string> insertions)
+    {
+      var sb = new StringBuilder();
+      for (int i = 0; i < polymer.Length - 1; i++)
+      {
+        sb.Append(polymer[i]);
+        var pair = polymer[i..(i + 2)];
+        if (insertions.TryGetValue(pair, out string insertion))
         {
-          var split = line.Split('-');
-          edges.Add(new Edge { Cave1 = split[0], Cave2 = split[1] });
+          sb.Append(insertion);
         }
-        Edges = edges.ToArray();
-        Part = part;
+      }
+      sb.Append(polymer.Last());
+      return sb.ToString();
+    }
+
+    public class Polymer
+    {
+      private Dictionary<string, long> _pairs;
+      private char _firstLetter;
+      private char _lastLetter;
+
+      public Polymer(string line)
+      {
+        _pairs = new Dictionary<string, long>();
+        for (int i = 0; i < line.Length - 1; i++)
+        {
+          var key = line[i..(i + 2)];
+          _pairs[key] = (_pairs.ContainsKey(key) ? _pairs[key] : 0) + 1;
+        }
+        _firstLetter = line[0];
+        _lastLetter = line[^1];
       }
 
-      public IEnumerable<string[]> GetPaths(string[] pathSoFar = null)
+      public void Insert(Dictionary<string, string> insertions)
       {
-        if (pathSoFar == null)
+        var newPairs = new Dictionary<string, long>();
+        foreach (var insertion in insertions)
         {
-          pathSoFar = new[] { "start" };
-        }
-
-        var last = pathSoFar.Last();
-        if (last == "end") { yield return pathSoFar; }
-        else
-        {
-          var others = GetNeighbors(last).ToArray();
-          foreach (var other in others)
+          if (_pairs.TryGetValue(insertion.Key, out long count))
           {
-            var next = Append(pathSoFar, other);
-            if (IsValidPath(next))
-            {
-              foreach (var path in GetPaths(next)) { yield return path; }
-            }
+            var newPair1 = insertion.Key[0] + insertion.Value;
+            var newPair2 = insertion.Value + insertion.Key[1];
+
+            newPairs[newPair1] = (newPairs.ContainsKey(newPair1) ? newPairs[newPair1] : 0) + count;
+            newPairs[newPair2] = (newPairs.ContainsKey(newPair2) ? newPairs[newPair2] : 0) + count;
+            _pairs.Remove(insertion.Key);
           }
         }
+        _pairs = newPairs;
       }
 
-      private IEnumerable<string> GetNeighbors(string cave)
+      public Dictionary<char, long> GetHistogram()
       {
-        foreach (var edge in Edges)
+        var result = new Dictionary<char, long>();
+        foreach (var pair in _pairs)
         {
-          if (edge.Cave1 == cave) { yield return edge.Cave2; }
-          else if (edge.Cave2 == cave) { yield return edge.Cave1; }
+          var countNew = pair.Value;
+
+          var pair0 = pair.Key[0];
+          if (!result.TryGetValue(pair0, out long count0)) { count0 = 0; }
+          result[pair0] = count0 + countNew;
+
+          var pair1 = pair.Key[1];
+          if (!result.TryGetValue(pair1, out long count1)) { count1 = 0; }
+          result[pair1] = count1 + countNew;
         }
-      }
 
-      private string[] Append(string[] path, string append)
-      {
-        return path.ToList().Append(append).ToArray();
-      }
+        result[_firstLetter]++;
+        result[_lastLetter]++;
 
-      private bool IsValidPath(string[] path)
-      {
-        var smallCaves = path.Where(x => x.ToLower() == x);
-        var smallCaveCount = smallCaves.GroupBy(x => x).ToDictionary(x => x.Key, x => x.Count());
-        var revisitedCaves = smallCaveCount.Where(x => x.Value > 1).Select(x => x.Key).ToArray();
-        if (revisitedCaves.Length == 0) { return true; }
-
-        if (Part == 2)
+        foreach (var key in result.Keys)
         {
-          if (revisitedCaves.Length > 1) { return false; }
-          var revisitedCave = revisitedCaves[0];
-          if (revisitedCave == "start") { return false; }
-          if (revisitedCave == "end") { return false; }
-          return smallCaveCount[revisitedCave] == 2;
+          result[key] /= 2;
         }
-        return false;
+
+        return result;
       }
     }
   }

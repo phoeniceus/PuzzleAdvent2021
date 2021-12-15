@@ -124,8 +124,8 @@ namespace PuzzleAdvent2021Test
     }
 
     [Theory]
-    [InlineData(1, 226)]
-    [InlineData(2, 3509)]
+    [InlineData(1, 1588)]
+    [InlineData(2, 2188189693529)]
     public void TestPuzzle_Day14(int part, long result)
     {
       var puzzle = new Puzzle_Day14(part, useTestData: true);

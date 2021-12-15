@@ -6,7 +6,7 @@ namespace PuzzleAdvent2021
   {
     static void Main(string[] args)
     {
-      var puzzle = 13;
+      var puzzle = 14;
       Console.WriteLine($"The answer to Puzzle #{puzzle}.1 is\r\n[{GetPuzzle(puzzle, 1).Solve()}].");
       Console.WriteLine($"The answer to Puzzle #{puzzle}.2 is\r\n{GetPuzzle(puzzle, 2).Solve()}.");
     }
