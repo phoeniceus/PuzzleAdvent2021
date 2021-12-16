@@ -43,6 +43,53 @@ namespace PuzzleAdvent2021
       }
     }
 
+    public class UnvisitedList
+    {
+      private Dictionary<int, List<Position>> _positionsByDistance;
+      public UnvisitedList(IEnumerable<Position> _positions)
+      {
+        _positionsByDistance = _positions.GroupBy(p => p.distance).ToDictionary(x => x.Key, x => x.ToList());
+      }
+
+      public void Remove(Position position)
+      {
+        if (_positionsByDistance.TryGetValue(position.distance, out List<Position> list))
+        {
+          list.Remove(position);
+          if (list.Count == 0) { _positionsByDistance.Remove(position.distance); }
+        }
+        position.visited = true;
+      }
+
+      public void Add(Position position)
+      {
+        List<Position> list = null;
+        if (!_positionsByDistance.TryGetValue(position.distance, out  list))
+        {
+          list = new List<Position>();
+          _positionsByDistance.Add(position.distance, list);
+        }
+        list.Add(position);
+        position.visited = false;
+      }
+
+      public Position PopNext()
+      {
+        if (_positionsByDistance.Count > 0)
+        {
+          var key = _positionsByDistance.Keys.Min();
+          var list = _positionsByDistance[key];
+          var index = list.Count - 1;
+          var position = list[index];
+          list.RemoveAt(index);
+          if (list.Count == 0) { _positionsByDistance.Remove(position.distance); }
+          position.visited = true;
+          return position;
+        }
+        return null;
+      }
+    }
+
     public class Map
     {
       public Position[,] _positions;
@@ -75,24 +122,29 @@ namespace PuzzleAdvent2021
 
       public void Dykstra()
       {
-        Initial.distance = 0;
-        var unvisited = GetAll().ToList();
+        var unvisited = new UnvisitedList(GetAll());
         unvisited.Remove(Initial);
-        for (Position current = Initial; !Destination.visited && current != Destination && current != null && current.distance != Int32.MaxValue; current = GetNext(unvisited))
+        Initial.distance = 0;
+        for (Position current = Initial; !Destination.visited && current != Destination && current != null && current.distance != Int32.MaxValue; current = unvisited.PopNext())
         {
-          DykstraStep(current);
+          DykstraStep(current, unvisited);
         }
       }
 
-      private void DykstraStep(Position current)
+      private void DykstraStep(Position current, UnvisitedList unvisited)
       {
-        //Debug.WriteLine($"Current = {current}");
         foreach (var neighbor in GetNeighbors(current))
         {
           var tentative = current.distance + neighbor.risk;
-          if (tentative < neighbor.distance) { neighbor.distance = tentative; }
+          if (tentative < neighbor.distance) { 
+            neighbor.distance = tentative; 
+            if (!neighbor.visited)
+            {
+              unvisited.Remove(neighbor);
+              unvisited.Add(neighbor);
+            }
+          }
         }
-        current.visited = true;
       }
 
       private IEnumerable<Position> GetAll()
@@ -112,21 +164,6 @@ namespace PuzzleAdvent2021
         if (p.row > 0) { yield return _positions[p.col, p.row - 1]; }
         if (p.col < _positions.GetLength(0) - 1) { yield return _positions[p.col + 1, p.row]; }
         if (p.row < _positions.GetLength(1) - 1) { yield return _positions[p.col, p.row + 1]; }
-      }
-
-      private Position GetNext(List<Position> unvisited)
-      {
-        Position best = null;
-        foreach (var position in unvisited)
-        {
-          if (position.visited) { continue; }
-          if (best == null || position.distance < best.distance) { best = position; }
-        }
-        if (best != null)
-        {
-          unvisited.Remove(best);
-        }
-        return best;
       }
 
       private Position Initial => _positions[0, 0];
