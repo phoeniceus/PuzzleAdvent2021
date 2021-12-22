@@ -20,7 +20,18 @@ namespace PuzzleAdvent2021
     {
       Day = day;
       Part = part;
-      _dataPath = $"data\\{(useTestData ? "Test" : "Input")}{Day}.txt";
+      if (useTestData)
+      {
+        _dataPath = $"data\\Test{Day}.txt";
+        if (!File.Exists(_dataPath))
+        {
+          _dataPath = $"data\\Test{Day}.{Part}.txt";
+        }
+      }
+      else
+      {
+        _dataPath = $"data\\Input{Day}.txt";
+      }
     }
 
     public abstract string Solve();

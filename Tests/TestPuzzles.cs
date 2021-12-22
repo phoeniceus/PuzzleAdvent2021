@@ -186,5 +186,32 @@ namespace PuzzleAdvent2021Test
       var puzzle = new Puzzle_Day19(part, useTestData: true);
       Assert.Equal(result.ToString(), puzzle.Solve());
     }
+
+    [Theory]
+    [InlineData(1, 35)]
+    [InlineData(2, 3351)]
+    public void TestPuzzle_Day20(int part, long result)
+    {
+      var puzzle = new Puzzle_Day20(part, useTestData: true);
+      Assert.Equal(result.ToString(), puzzle.Solve());
+    }
+
+    [Theory]
+    [InlineData(1, 739785)]
+    [InlineData(2, 444356092776315)]
+    public void TestPuzzle_Day21(int part, long result)
+    {
+      var puzzle = new Puzzle_Day21(part, useTestData: true);
+      Assert.Equal(result.ToString(), puzzle.Solve());
+    }
+
+    [Theory]
+    [InlineData(1, 590784)]
+    [InlineData(2, 2758514936282235)]
+    public void TestPuzzle_Day22(int part, long result)
+    {
+      var puzzle = new Puzzle_Day22(part, useTestData: true);
+      Assert.Equal(result.ToString(), puzzle.Solve());
+    }
   }
 }
