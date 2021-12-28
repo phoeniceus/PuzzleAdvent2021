@@ -31,6 +31,10 @@ namespace PuzzleAdvent2021
       else
       {
         _dataPath = $"data\\Input{Day}.txt";
+        if (!File.Exists(_dataPath))
+        {
+          _dataPath = $"data\\Input{Day}.{Part}.txt";
+        }
       }
     }
 

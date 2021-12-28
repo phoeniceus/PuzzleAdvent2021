@@ -12,24 +12,6 @@ namespace PuzzleAdvent2021
   {
     public Puzzle_Day23(int part, bool useTestData = false) : base(23, part, useTestData)
     {
-      /*
-       * This puzzle presented memory and CPU challenges.
-       * 
-       * It is not possible to store cube values in arrays because there are trillions of cubes
-       * and C# cannot store an array with more than 2 billion elements.
-       * 
-       * It is not even possible to run each cube through all the steps, counting as we go, because 
-       * it would take hours to run.
-       * 
-       * The solution is to model cuboids as ranges of x, y, and z values (6 ints) and to 
-       * treat each step as a set of cuboids covering the cubes that were turned on by this
-       * step and by no later step. Then it is just a matter of erasing later step cuboid
-       * from earlier step cuboids.
-       * 
-       * After all steps are processed, each individual step is reduced to a small number of 
-       * cuboids (6 tuples of integers) where it was the last step to turn those cubes on.
-       * Then we can very easily count them.
-       */
     }
 
     public override string Solve()
@@ -38,8 +20,6 @@ namespace PuzzleAdvent2021
       return board.GetSolution().ToString();
     }
 
-    public enum Direction { Up, Down, Left, Right }
-
     public struct Position
     {
       public readonly int col;
@@ -47,17 +27,10 @@ namespace PuzzleAdvent2021
 
       public Position(int col, int row) { this.col = col; this.row = row; }
 
-      public Position Move(Direction d)
-      {
-        switch (d)
-        {
-          case Direction.Up: return new Position(col, row - 1);
-          case Direction.Down: return new Position(col, row + 1);
-          case Direction.Left: return new Position(col - 1, row);
-          case Direction.Right: return new Position(col + 1, row);
-          default: throw new ApplicationException("Invalid direction.");
-        }
-      }
+      public Position Above => new Position(col, row - 1);
+      public Position Below => new Position(col, row + 1);
+      public Position Left => new Position(col - 1, row);
+      public Position Right => new Position(col + 1, row);
 
       public bool IsHallway => row == 1 && col > 0 && col < 12;
       public bool IsAlcove => row == 1 && (col == 3 || col == 5 || col == 7 || col == 9);
@@ -94,36 +67,28 @@ namespace PuzzleAdvent2021
       public override string ToString() => $"{col},{row}";
     }
 
-    public class Path : List<Position>
+    public struct Move
     {
       public char Amphipod { get; set; }
-      public Path() : base() { }
-      public Path(IEnumerable<Position> items) : base(items) { }
-      public Position Start => this[0];
-      public Position End => this[Count - 1];
-
-      public Path Extend(Position p, char? amphipod = null)
-      {
-        var result = new Path();
-        result.AddRange(this);
-        result.Add(p);
-        result.Amphipod = amphipod ?? Amphipod;
-        return result;
-      }
+      public Position Start { get; set; }
+      public Position End { get; set; }
+      public int Count { get; set; }
     }
 
     public class Board
     {
       private char[,] _board;
       private int _energy;
-      private Stack<Path> _moves;
+      private Stack<Move> _moves;
       private int _roomSize;
+      private int _leastEnergy;
+
       private Board(int roomSize)
       {
         _roomSize = roomSize;
         _board = new char[13, 3 + roomSize];
         _energy = 0;
-        _moves = new Stack<Path>();
+        _moves = new Stack<Move>();
         for (int row = 0; row < 3 + roomSize; row++)
         {
           for (int col = 0; col < 13; col++)
@@ -144,27 +109,13 @@ namespace PuzzleAdvent2021
         }
       }
 
-      public override string ToString()
-      {
-        var sb = new StringBuilder();
-        for (int row = 0; row < _board.GetLength(1); row++)
-        {
-          for (int col = 0; col < _board.GetLength(0); col++)
-          {
-            sb.Append(_board[col, row]);
-          }
-          sb.AppendLine();
-        }
-        return sb.ToString();
-      }
-
       public bool Success => Position.GetAllOccupiable(_roomSize).All(p => p.IsHallway || p.IsRoomFor(GetOccupant(p), _roomSize));
 
-      public void PushMove(Path move)
+      public void PushMove(Move move)
       {
         SetOccupant(move.Start, CharExtensions.OPEN);
         SetOccupant(move.End, move.Amphipod);
-        _energy += (move.Count - 1) * move.Amphipod.EnergyPerMove();
+        _energy += move.Count * move.Amphipod.EnergyPerMove();
         _moves.Push(move);
       }
 
@@ -173,35 +124,28 @@ namespace PuzzleAdvent2021
         var move = _moves.Pop();
         SetOccupant(move.End, CharExtensions.OPEN);
         SetOccupant(move.Start, move.Amphipod);
-        _energy -= (move.Count - 1) * move.Amphipod.EnergyPerMove();
+        _energy -= move.Count * move.Amphipod.EnergyPerMove();
       }
 
       private char GetOccupant(Position p) => _board[p.col, p.row];
       private void SetOccupant(Position p, char ch) { _board[p.col, p.row] = ch; }
 
-
-      private int _leastEnergy;
-      private int _percentDone;
-
       public int GetSolution()
       {
-        _leastEnergy = Int32.MaxValue;// ((25 * 1000) + (25 * 100) + (25 * 10)) * 4;
-        _percentDone = 0;
+        _leastEnergy = Int32.MaxValue;
         GetSolutionIter(0, 100);
         return _leastEnergy;
       }
 
-      private void GetSolutionIter(double minPercent, double maxPercent)
+      private void GetSolutionIter()
       {
-        var lastMove = _moves.TryPeek(out Path m) ? m : null;
+        Move lastMove = _moves.TryPeek(out Move m) ? m : new Move();
         var possibleNextMoves = GetAllPossibleNextMoves().ToArray();
         if (possibleNextMoves.Length == 0) { return; }
-        var percent = minPercent;
-        var deltaPercent = (maxPercent - minPercent) / possibleNextMoves.Length;
         foreach (var move in possibleNextMoves)
         {
           // Don't move an amphipod twice in a row. This prevents moving it back and forth forever.
-          if (lastMove != null && move.Start == lastMove.End) { continue; }
+          if (move.Start == lastMove.End) { continue; }
 
           PushMove(move);
           if (_energy + MinimumEnergyNeededToFinish() < _leastEnergy)
@@ -212,16 +156,10 @@ namespace PuzzleAdvent2021
             }
             else
             {
-              GetSolutionIter(percent, percent + deltaPercent);
+              GetSolutionIter();
             }
           }
           PopMove();
-          percent += deltaPercent;
-          if ((int)percent > _percentDone)
-          {
-            _percentDone = (int)percent;
-            Debug.Write(_percentDone + " ");
-          }
         }
       }
 
@@ -249,13 +187,28 @@ namespace PuzzleAdvent2021
         return ch.IsAmphipod() && !PositionIsFinalSpotForAmphipod(position, ch);
       }
 
+      private IEnumerable<(Position position, char amphipod)> FindMoveableAmphipods()
+      {
+        foreach (var position in Position.GetAllOccupiable(_roomSize))
+        {
+          var ch = GetOccupant(position);
+          if (ch.IsAmphipod())
+          {
+            if (!PositionIsFinalSpotForAmphipod(position, ch))
+            {
+              yield return (position, ch);
+            }
+          }
+        }
+      }
+
       private bool PositionIsFinalSpotForAmphipod(Position position, char amphipod)
       {
         // Is this position a home spot for the amphipod?
         if (!position.IsRoomFor(amphipod, _roomSize)) { return false; }
 
         // Are all home spots below me occupied by the same type amphipod?
-        for (var p = position; p.row <= _roomSize + 1; p = p.Move(Direction.Down))
+        for (var p = position; p.row <= _roomSize + 1; p = p.Below)
         {
           if (GetOccupant(p) != amphipod) { return false; }
         }
@@ -264,63 +217,92 @@ namespace PuzzleAdvent2021
         return true;
       }
 
-      private bool IsValidEnd(Position start, Position end)
+      public IEnumerable<Move> GetAllPossibleNextMoves() => FindMoveableAmphipods().SelectMany(x => GetPossibleMoves(x.position, x.amphipod));
+
+      public IEnumerable<Move> GetPossibleMoves(Position start, char amphipod)
       {
-        // Must end on an open position
-        if (!GetOccupant(end).IsOpen()) { return false; }
+        // Note - this relies on Move being a struct, not a class
+        var move = new Move();
+        move.Start = start;
+        move.Amphipod = amphipod;
 
-        // May not end on an alcove
-        if (end.IsAlcove) { return false; }
-
-        // May not move from hallway to hallway
-        if (start.IsHallway)
+        // Go up until we reach the hallway
+        var above = start;
+        while (GetOccupant(above.Above).IsOpen())
         {
-          if (end.IsHallway) { return false; }
+          above = above.Above;
+          move.Count++;
         }
+        if (!above.IsHallway) { yield break; } // blocked before reaching hallway
 
-        // May only move to a room if it is the destination room 
-        // AND room does not contain other amphipods that don't belong there.
-        // AND all spots are filled from bottom up
-        if (end.IsRoom(_roomSize))
+        var startIsHallway = start.IsHallway;
+        var homeColumn = Position.RoomColFor(amphipod);
+        var countToHomeAlcove = 0;
+        var countToAbove = move.Count;
+
+        // Go Left until we hit the wall
+        var left = above;
+        while (GetOccupant(left.Left).IsOpen())
         {
-          var ch = GetOccupant(start);
-
-          // If I'm not in an end room, return false
-          if (!end.IsRoomFor(ch, _roomSize)) { return false; }
-
-          // If any home spot below me is not occupied by the same type amphipod, return false;
-          for (int r = end.row + 1; r <= _roomSize + 1; r++)
+          left = left.Left;
+          move.Count++;
+          if (!left.IsAlcove)
           {
-            if (GetOccupant(new Position(end.col, r)) != ch) { return false; }
+            if (!startIsHallway)
+            {
+              move.End = left;
+              yield return move;
+            }
+          }
+          else if (left.col == homeColumn)
+          {
+            countToHomeAlcove = move.Count;
           }
         }
 
-        return true;
-      }
-
-      public IEnumerable<Path> GetAllPossibleNextMoves() => GetValidStartPositions().SelectMany(x => GetPossibleNextMovesFromPosition(x));
-
-      public IEnumerable<Path> GetPossibleNextMovesFromPosition(Position start) => GetValidPaths(new Path().Extend(start, GetOccupant(start)));
-
-      private IEnumerable<Path> GetValidPaths(Path pathSoFar)
-      {
-        if (IsValidEnd(pathSoFar.Start, pathSoFar.End)) { yield return pathSoFar; }
-
-        var current = pathSoFar.End;
-        var above = current.Move(Direction.Up);
-        var below = current.Move(Direction.Down);
-        var left = current.Move(Direction.Left);
-        var right = current.Move(Direction.Right);
-
-        Position? prev = (pathSoFar.Count > 1) ? pathSoFar[pathSoFar.Count - 2] : null;
-        foreach (var next in new[] { above, below, left, right })
+        // Go Right until we hit the wall
+        var right = above;
+        move.Count = countToAbove;
+        while (GetOccupant(right.Right).IsOpen())
         {
-          if (next == prev) { continue; } // Don't move same amphipod twice in a row.
-
-          if (GetOccupant(next).IsOpen())
+          right = right.Right;
+          move.Count++;
+          if (!right.IsAlcove)
           {
-            var newPath = pathSoFar.Extend(next);
-            foreach (var result in GetValidPaths(newPath)) { yield return result; }
+            if (!startIsHallway)
+            {
+              move.End = right;
+              yield return move;
+            }
+          }
+          else if (right.col == homeColumn)
+          {
+            countToHomeAlcove = move.Count;
+          }
+        }
+
+        // Go Down from alcove until we determine if this is a final spot
+        if (countToHomeAlcove > 0)
+        {
+          move.Count = countToHomeAlcove;
+          var below = new Position(homeColumn, 1);
+          while (GetOccupant(below.Below).IsOpen())
+          {
+            below = below.Below;
+            move.Count++;
+          }
+          if (below.IsAlcove) { yield break; } // Room is blocked
+
+          // below = last reachable open spot in room. Make sure everything below me is a matching amphipod.
+          var under = below;
+          while (GetOccupant(under.Below) == amphipod)
+          {
+            under = under.Below;
+          }
+          if (under.row == _roomSize + 1)
+          {
+            move.End = below;
+            yield return move;
           }
         }
       }

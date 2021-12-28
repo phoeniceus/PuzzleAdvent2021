@@ -215,7 +215,7 @@ namespace PuzzleAdvent2021Test
     }
 
     [Theory]
-    //[InlineData(1, 12521)]
+    [InlineData(1, 12521)]
     [InlineData(2, 44169)]
     public void TestPuzzle_Day23(int part, long result)
     {
